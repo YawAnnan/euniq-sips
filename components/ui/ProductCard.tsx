@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 import { motion } from "framer-motion";
 
 type ProductCardProps = {
@@ -19,10 +19,11 @@ export default function ProductCard({
       className="overflow-hidden rounded-[30px] bg-white shadow-lg"
     >
       <div className="relative h-72 overflow-hidden">
-        <img
+        <Image
           src={image}
           alt={name}
           className="h-full w-full object-cover transition duration-500 hover:scale-110"
+          fill
         />
       </div>
 
@@ -33,7 +34,7 @@ export default function ProductCard({
           </h3>
 
           <span className="rounded-full bg-[#FFF4E5] px-4 py-1 text-sm font-semibold text-[#D97706]">
-            27 Pack
+            27 Pieces
           </span>
         </div>
 

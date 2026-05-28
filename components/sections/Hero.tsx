@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 import { motion } from "framer-motion";
 
@@ -44,7 +45,15 @@ export default function Hero() {
           transition={{ duration: 0.8 }}
           className="relative"
         >
-          <div className="h-125 rounded-[40px] bg-linear-to-br from-[#556B2F] to-[#D97706] shadow-2xl" />
+          <div className="relative h-125 overflow-hidden rounded-[40px] shadow-2xl">
+        <Image
+            src="/images/ALL.png"
+            alt="Viva Drinks by Euniq Sips"
+            fill
+            className="object-cover"
+            priority
+        />
+    </div>
         </motion.div>
       </div>
     </section>

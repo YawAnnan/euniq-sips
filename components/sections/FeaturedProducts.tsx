@@ -12,12 +12,11 @@ export default function FeaturedProducts() {
           </p>
 
           <h2 className="mb-6 text-5xl font-black text-[#556B2F]">
-            Crafted For Premium Taste
+            Featured Products
           </h2>
 
           <p className="mx-auto max-w-2xl text-lg text-gray-600">
-            Explore our luxury beverage selections designed for refreshment,
-            lifestyle, and unforgettable flavor experiences.
+            Explore our curated selection of premium beverages, crafted for luxury refreshment and modern lifestyle hydration.
           </p>
         </div>
 

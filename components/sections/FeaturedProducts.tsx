@@ -1,4 +1,4 @@
-import ProductCard from "../ui/ProductCard";
+import ShowCaseCard from "@/components/ui/ShowCaseCard";
 import { products } from "@/data/products";
 
 export default function FeaturedProducts() {
@@ -22,12 +22,12 @@ export default function FeaturedProducts() {
 
         <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-4">
           {products.map((product) => (
-            <ProductCard
+            <ShowCaseCard
               key={product.id}
               name={product.name}
-              price={product.price}
               image={product.image}
-            />
+              description={product.description}
+          />
           ))}
         </div>
       </div>

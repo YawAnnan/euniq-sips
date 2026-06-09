@@ -1,177 +1,127 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 
 export default function CheckoutForm() {
-  const { items } = useCart();
+  const {
+    items,
+    mode,
+    getSingleTotal,
+    getCustomTotal,
+    getDeliveryFee,
+    getGrandTotal,
+    clearCart,
+  } = useCart();
 
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const [location, setLocation] = useState<
-    "Accra" | "Outside"
-  >("Accra");
+  const [isAccra, setIsAccra] = useState(true);
 
-  const deliveryFee = location === "Accra" ? 40 : 50;
+  const total =
+    mode === "single"
+      ? getSingleTotal()
+      : getCustomTotal();
 
-  const subtotal = useMemo(() => {
-    return items.reduce(
-      (sum, item) => sum + item.quantity * item.price,
-      0
-    );
-  }, [items]);
-
-  const total = subtotal + deliveryFee;
-
-  const whatsappMessage = `
-Hello Euniq Sips,
-
-I would like to place an order.
-
-Name: ${name}
-Phone: ${phone}
-Location: ${location}
-Address: ${address}
-
-Order Details:
-${items
-  .map(
-    (item) =>
-      `- ${item.name} x${item.quantity}`
-  )
-  .join("\n")}
-
-Subtotal: GH₵${subtotal}
-Delivery Fee: GH₵${deliveryFee}
-
-Total: GH₵${total}
-`;
-
-  const whatsappLink = `https://wa.me/233242743921?text=${encodeURIComponent(
-    whatsappMessage
-  )}`;
+  const delivery = getDeliveryFee(isAccra);
+  const grandTotal = getGrandTotal(isAccra);
 
   return (
-    <div className="grid gap-10 lg:grid-cols-2">
-      
-      {/* FORM */}
+    <div className="space-y-6">
+      {/* HEADER */}
       <div>
-        <h2 className="mb-6 text-3xl font-black text-[#556B2F]">
-          Checkout Details
-        </h2>
-
-        <div className="space-y-5">
-          
-          <input
-            type="text"
-            placeholder="Full Name"
-            value={name}
-            onChange={(e) =>
-              setName(e.target.value)
-            }
-            className="w-full rounded-2xl border border-gray-300 p-4 outline-none focus:border-[#556B2F]"
-          />
-
-          <input
-            type="tel"
-            placeholder="Phone Number"
-            value={phone}
-            onChange={(e) =>
-              setPhone(e.target.value)
-            }
-            className="w-full rounded-2xl border border-gray-300 p-4 outline-none focus:border-[#556B2F]"
-          />
-
-          <textarea
-            placeholder="Delivery Address"
-            value={address}
-            onChange={(e) =>
-              setAddress(e.target.value)
-            }
-            className="h-32 w-full rounded-2xl border border-gray-300 p-4 outline-none focus:border-[#556B2F]"
-          />
-
-          <div>
-            <label htmlFor="delivery-location" className="mb-2 block font-medium text-gray-700">
-              Delivery Location
-            </label>
-
-            <select
-              id="delivery-location"
-              value={location}
-              onChange={(e) =>
-                setLocation(
-                  e.target.value as
-                    | "Accra"
-                    | "Outside"
-                )
-              }
-              className="w-full rounded-2xl border border-gray-300 p-4 outline-none focus:border-[#556B2F]"
-            >
-              <option value="Accra">
-                Accra
-              </option>
-
-              <option value="Outside">
-                Outside Accra
-              </option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* SUMMARY */}
-      <div className="rounded-[30px] bg-[#F8F6F1] p-8">
-        
-        <h2 className="mb-6 text-3xl font-black text-[#556B2F]">
+        <h2 className="text-2xl font-bold text-[#556B2F]">
           Order Summary
         </h2>
 
-        <div className="space-y-4">
-          {items.map((item) => (
-            <div
-              key={item.name}
-              className="flex items-center justify-between"
-            >
-              <span>
-                {item.name} x{item.quantity}
-              </span>
+        <p className="text-gray-600">
+          Review your order before confirming
+        </p>
+      </div>
 
-              <span className="font-bold">
-                GH₵
-                {item.quantity * item.price}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-8 border-t pt-6">
-          
-          <div className="mb-3 flex justify-between">
-            <span>Subtotal</span>
-            <span>GH₵{subtotal}</span>
-          </div>
-
-          <div className="mb-3 flex justify-between">
-            <span>Delivery Fee</span>
-            <span>GH₵{deliveryFee}</span>
-          </div>
-
-          <div className="mt-5 flex justify-between text-2xl font-black text-[#D97706]">
-            <span>Total</span>
-            <span>GH₵{total}</span>
-          </div>
-
-          <a
-            href={whatsappLink}
-            target="_blank"
-            className="mt-8 block rounded-2xl bg-[#25D366] py-4 text-center text-lg font-bold text-white transition hover:scale-[1.02]"
+      {/* ITEMS LIST */}
+      <div className="space-y-3">
+        {items.map((item) => (
+          <div
+            key={item.name}
+            className="flex items-center justify-between rounded-xl border p-4"
           >
-            Continue via WhatsApp
-          </a>
+            <div>
+              <p className="font-semibold">{item.name}</p>
+
+              <p className="text-sm text-gray-500">
+                {mode === "single"
+                  ? `${item.packs} packs`
+                  : `${item.pieces} pieces`}
+              </p>
+            </div>
+
+            <p className="font-bold text-[#D97706]">
+              GH₵{item.price}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* DELIVERY SELECT */}
+      <div className="rounded-xl border p-4">
+        <p className="mb-2 font-semibold">
+          Delivery Location
+        </p>
+
+        <div className="flex gap-4">
+          <button
+            onClick={() => setIsAccra(true)}
+            className={`flex-1 rounded-lg p-3 ${
+              isAccra
+                ? "bg-[#556B2F] text-white"
+                : "bg-gray-100"
+            }`}
+          >
+            Accra
+          </button>
+
+          <button
+            onClick={() => setIsAccra(false)}
+            className={`flex-1 rounded-lg p-3 ${
+              !isAccra
+                ? "bg-[#556B2F] text-white"
+                : "bg-gray-100"
+            }`}
+          >
+            Outside Accra
+          </button>
         </div>
       </div>
+
+      {/* TOTAL BREAKDOWN */}
+      <div className="space-y-2 rounded-xl border p-4">
+        <div className="flex justify-between">
+          <span>Items Total</span>
+          <span>GH₵{total}</span>
+        </div>
+
+        <div className="flex justify-between">
+          <span>Delivery</span>
+          <span>GH₵{delivery}</span>
+        </div>
+
+        <div className="flex justify-between border-t pt-2 text-lg font-bold">
+          <span>Total</span>
+          <span className="text-[#D97706]">
+            GH₵{grandTotal}
+          </span>
+        </div>
+      </div>
+
+      {/* PLACE ORDER */}
+      <button
+        onClick={() => {
+          alert("Order placed successfully!");
+          clearCart();
+        }}
+        className="w-full rounded-xl bg-[#556B2F] py-4 font-bold text-white hover:scale-[1.02] transition"
+      >
+        Place Order
+      </button>
     </div>
   );
 }

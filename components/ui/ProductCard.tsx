@@ -8,21 +8,26 @@ type ProductCardProps = {
   name: string;
   price: number;
   image: string;
-  mode: "single" | "custom";
 };
 
 export default function ProductCard({
   name,
   price,
   image,
-  mode,
 }: ProductCardProps) {
-  const { items, updateItemQuantity, totalItems } = useCart();
+  const {
+    items,
+    mode,
+    updateSinglePack,
+    updateCustomPieces,
+  } = useCart();
 
   const item = items.find((i) => i.name === name);
-  const quantity = item?.quantity || 0;
 
-  const remaining = 27 - totalItems;
+  const quantity =
+    mode === "single"
+      ? item?.packs || 0
+      : item?.pieces || 0;
 
   return (
     <motion.div
@@ -55,21 +60,21 @@ export default function ProductCard({
           Premium refreshing beverage experience.
         </p>
 
-        {/* CUSTOM PACK MODE */}
+        {/* CUSTOM MODE */}
         {mode === "custom" && (
           <div className="mb-6">
             <label
-              htmlFor={`qty-${name.replace(/\s/g, "-")}`}
+              htmlFor={`custom-${name}`}
               className="mb-2 block text-sm font-medium text-gray-600"
             >
-              Quantity
+              Pieces in Pack
             </label>
 
             <select
-              id={`qty-${name.replace(/\s/g, "-")}`}
+              id={`custom-${name}`}
               value={quantity}
               onChange={(e) =>
-                updateItemQuantity(
+                updateCustomPieces(
                   name,
                   price,
                   Number(e.target.value)
@@ -77,16 +82,14 @@ export default function ProductCard({
               }
               className="w-full rounded-xl border border-gray-300 p-3 outline-none focus:border-[#556B2F]"
             >
-              {Array.from({ length: 28 }, (_, i) => (
-                <option key={i} value={i}>
-                  {i}
+              <option value={0}>Select pieces</option>
+
+              {Array.from({ length: 27 }, (_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1}
                 </option>
               ))}
             </select>
-
-            <p className="mt-2 text-sm text-gray-500">
-              Remaining slots: {remaining}
-            </p>
           </div>
         )}
 
@@ -94,30 +97,31 @@ export default function ProductCard({
         {mode === "single" && (
           <div className="mb-6">
             <label
-              htmlFor={`packs-${name.replace(/\s/g, "-")}`}
+              htmlFor={`single-${name}`}
               className="mb-2 block text-sm font-medium text-gray-600"
             >
               Number of Packs
             </label>
 
-            <select
-              id={`packs-${name.replace(/\s/g, "-")}`}
+            <input
+              id={`single-${name}`}
+              type="number"
+              min="0"
               value={quantity}
               onChange={(e) =>
-                updateItemQuantity(
+                updateSinglePack(
                   name,
                   price,
                   Number(e.target.value)
                 )
               }
+              placeholder="Enter number of packs"
               className="w-full rounded-xl border border-gray-300 p-3 outline-none focus:border-[#556B2F]"
-            >
-              {Array.from({ length: 28 }, (_, i) => (
-                <option key={i} value={i}>
-                  {i}
-                </option>
-              ))}
-            </select>
+            />
+
+            <p className="mt-2 text-sm text-gray-500">
+              1 pack = 27 pieces of {name}
+            </p>
           </div>
         )}
 
@@ -125,9 +129,7 @@ export default function ProductCard({
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-400">
-              {mode === "single"
-                ? "Per Pack"
-                : "Per Item"}
+              {mode === "single" ? "Per Pack" : "Per Item"}
             </p>
 
             <p className="text-2xl font-black text-[#D97706]">

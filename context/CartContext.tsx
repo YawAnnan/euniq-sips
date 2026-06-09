@@ -2,10 +2,11 @@
 
 import { createContext, useContext, useState } from "react";
 
-type CartItem = {
+export type CartItem = {
   name: string;
-  quantity: number;
   price: number;
+  packs: number;
+  pieces: number;
 };
 
 type Mode = "single" | "custom" | null;
@@ -15,76 +16,146 @@ type CartContextType = {
   mode: Mode;
   setMode: (mode: Mode) => void;
 
-  updateItemQuantity: (
+  updateSinglePack: (
     name: string,
     price: number,
-    quantity: number
+    packs: number
+  ) => void;
+
+  updateCustomPieces: (
+    name: string,
+    price: number,
+    pieces: number
   ) => void;
 
   removeItem: (name: string) => void;
-
-  totalItems: number;
   clearCart: () => void;
+
+  totalPieces: number;
+  totalItems: number;
+
+  getSingleTotal: () => number;
+  getCustomTotal: () => number;
+  getDeliveryFee: (isAccra: boolean) => number;
+  getGrandTotal: (isAccra: boolean) => number;
 };
 
-const CartContext = createContext<CartContextType | undefined>(undefined);
+const CartContext = createContext<CartContextType | undefined>(
+  undefined
+);
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
+export function CartProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [mode, setMode] = useState<Mode>(null);
 
-  const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
+  // 🔵 TOTAL PIECES (CUSTOM MODE)
+  const totalPieces = items.reduce(
+    (sum, item) => sum + item.pieces,
+    0
+  );
 
-  // 🔥 MAIN LOGIC ENGINE
-  const updateItemQuantity = (
+  // 🟢 SINGLE MODE TOTAL
+  const getSingleTotal = () => {
+    return items.reduce((sum, item) => {
+      return sum + item.packs * 27 * item.price;
+    }, 0);
+  };
+
+
+  // 🟠 CUSTOM MODE TOTAL
+  const getCustomTotal = () => {
+    return items.reduce((sum, item) => {
+      return sum + item.pieces * item.price;
+    }, 0);
+  };
+
+  // 🚚 DELIVERY
+  const getDeliveryFee = (isAccra: boolean) => {
+    return isAccra ? 40 : 50;
+  };
+
+  // 💰 GRAND TOTAL
+  const getGrandTotal = (isAccra: boolean) => {
+    if (mode === "single") {
+      return getSingleTotal() + getDeliveryFee(isAccra);
+    }
+
+    if (mode === "custom") {
+      return getCustomTotal() + getDeliveryFee(isAccra);
+    }
+
+    return 0;
+  };
+
+  // 🟢 SINGLE MODE UPDATE
+  const updateSinglePack = (
     name: string,
     price: number,
-    quantity: number
+    packs: number
   ) => {
     setItems((prev) => {
-      let updated = [...prev];
-
-      const existingIndex = updated.findIndex((i) => i.name === name);
-
-      // If quantity is 0 → remove item
-      if (quantity === 0) {
-        return updated.filter((i) => i.name !== name);
+      if (packs === 0) {
+        return prev.filter((i) => i.name !== name);
       }
 
-      // 🟢 SINGLE MODE LOGIC
-      if (mode === "single") {
-        // Only ONE product allowed
-        updated = [
-          {
-            name,
-            price,
-            quantity,
-          },
-        ];
-        return updated;
-      }
+      return [
+        {
+          name,
+          price,
+          packs,
+          pieces: 0,
+        },
+      ];
+    });
+  };
 
-      // 🟠 CUSTOM MODE LOGIC (27 LIMIT)
-      const otherItemsTotal = updated
+  // 🟠 CUSTOM MODE UPDATE
+  const updateCustomPieces = (
+    name: string,
+    price: number,
+    pieces: number
+  ) => {
+    setItems((prev) => {
+      const otherPieces = prev
         .filter((i) => i.name !== name)
-        .reduce((sum, i) => sum + i.quantity, 0);
+        .reduce((sum, i) => sum + i.pieces, 0);
 
-      if (otherItemsTotal + quantity > 27) {
-        return prev; // block update
+      if (otherPieces + pieces > 27) {
+        return prev;
       }
 
-      if (existingIndex >= 0) {
-        updated[existingIndex].quantity = quantity;
-      } else {
-        updated.push({ name, price, quantity });
+      if (pieces === 0) {
+        return prev.filter((i) => i.name !== name);
       }
 
-      return updated;
+      const exists = prev.find((i) => i.name === name);
+
+      if (exists) {
+        return prev.map((i) =>
+          i.name === name ? { ...i, pieces } : i
+        );
+      }
+
+      return [
+        ...prev,
+        {
+          name,
+          price,
+          packs: 0,
+          pieces,
+        },
+      ];
     });
   };
 
   const removeItem = (name: string) => {
-    setItems((prev) => prev.filter((i) => i.name !== name));
+    setItems((prev) =>
+      prev.filter((i) => i.name !== name)
+    );
   };
 
   const clearCart = () => setItems([]);
@@ -95,10 +166,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         items,
         mode,
         setMode,
-        updateItemQuantity,
+        updateSinglePack,
+        updateCustomPieces,
         removeItem,
-        totalItems,
         clearCart,
+        totalPieces,
+        getSingleTotal,
+        getCustomTotal,
+        getDeliveryFee,
+        getGrandTotal,
+        totalItems: items.reduce(
+          (sum, item) => sum + item.packs * 27 + item.pieces,
+          0
+        ),
+        
       }}
     >
       {children}
@@ -109,6 +190,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 export function useCart() {
   const context = useContext(CartContext);
   if (!context)
-    throw new Error("useCart must be used inside CartProvider");
+    throw new Error(
+      "useCart must be used inside CartProvider"
+    );
   return context;
 }

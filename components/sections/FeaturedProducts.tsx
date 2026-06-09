@@ -12,7 +12,7 @@ export default function FeaturedProducts() {
           </p>
 
           <h2 className="mb-6 text-5xl font-black text-[#556B2F]">
-            Featured Products
+            Our Viva Flavours
           </h2>
 
           <p className="mx-auto max-w-2xl text-lg text-gray-600">

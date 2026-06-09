@@ -1,7 +1,7 @@
 export const products = [
   {
     id: 1,
-    name: "Viva Guava",
+    name: "Guava",
     price: 90,
     image: "/images/GUAVA.png",
     description: "A rich tropical guava flavour bursting with freshness.",

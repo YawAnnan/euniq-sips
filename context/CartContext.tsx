@@ -92,27 +92,35 @@ export function CartProvider({
   };
 
   // 🟢 SINGLE MODE UPDATE
-  const updateSinglePack = (
-    name: string,
-    price: number,
-    packs: number
-  ) => {
-    setItems((prev) => {
-      if (packs === 0) {
-        return prev.filter((i) => i.name !== name);
-      }
+const updateSinglePack = (
+  name: string,
+  price: number,
+  packs: number
+) => {
+  setItems((prev) => {
+    if (packs === 0) {
+      return prev.filter((i) => i.name !== name);
+    }
 
-      return [
-        {
-          name,
-          price,
-          packs,
-          pieces: 0,
-        },
-      ];
-    });
-  };
+    const exists = prev.find((i) => i.name === name);
 
+    if (exists) {
+      return prev.map((i) =>
+        i.name === name ? { ...i, packs } : i
+      );
+    }
+
+    return [
+      ...prev,
+      {
+        name,
+        price,
+        packs,
+        pieces: 0,
+      },
+    ];
+  });
+};
   // 🟠 CUSTOM MODE UPDATE
   const updateCustomPieces = (
     name: string,
@@ -175,10 +183,10 @@ export function CartProvider({
         getCustomTotal,
         getDeliveryFee,
         getGrandTotal,
-        totalItems: items.reduce(
-          (sum, item) => sum + item.packs * 27 + item.pieces,
-          0
-        ),
+        totalItems: items.reduce((sum, item) => {
+          if (mode === "single") return sum + item.packs;
+          return sum + item.pieces;
+        }, 0),
         
       }}
     >

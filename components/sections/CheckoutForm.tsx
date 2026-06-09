@@ -2,6 +2,15 @@
 
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
+import type { CartItem } from "@/context/CartContext";
+
+type Order = {
+  name: string;
+  phone: string;
+  location: string;
+  items: CartItem[];
+  total: number;
+};
 
 export default function CheckoutForm() {
   const {
@@ -16,6 +25,12 @@ export default function CheckoutForm() {
 
   const [isAccra, setIsAccra] = useState(true);
 
+  const [customer, setCustomer] = useState({
+    name: "",
+    phone: "",
+    location: "",
+  });
+
   const total =
     mode === "single"
       ? getSingleTotal()
@@ -26,6 +41,7 @@ export default function CheckoutForm() {
 
   return (
     <div className="space-y-6">
+
       {/* HEADER */}
       <div>
         <h2 className="text-2xl font-bold text-[#556B2F]">
@@ -35,6 +51,41 @@ export default function CheckoutForm() {
         <p className="text-gray-600">
           Review your order before confirming
         </p>
+      </div>
+
+      {/* CUSTOMER DETAILS */}
+      <div className="space-y-4 rounded-xl border p-4">
+        <p className="font-semibold">Customer Details</p>
+
+        <input
+          placeholder="Full Name"
+          value={customer.name}
+          onChange={(e) =>
+            setCustomer({ ...customer, name: e.target.value })
+          }
+          className="w-full rounded-lg border p-3"
+        />
+
+        <input
+          placeholder="Phone Number"
+          value={customer.phone}
+          onChange={(e) =>
+            setCustomer({ ...customer, phone: e.target.value })
+          }
+          className="w-full rounded-lg border p-3"
+        />
+
+        <input
+          placeholder="Delivery Location"
+          value={customer.location}
+          onChange={(e) =>
+            setCustomer({
+              ...customer,
+              location: e.target.value,
+            })
+          }
+          className="w-full rounded-lg border p-3"
+        />
       </div>
 
       {/* ITEMS LIST */}
@@ -115,6 +166,21 @@ export default function CheckoutForm() {
       {/* PLACE ORDER */}
       <button
         onClick={() => {
+          const order: Order = {
+            name: customer.name,
+            phone: customer.phone,
+            location: customer.location,
+            items,
+            total: grandTotal,
+          };
+
+          console.log("ORDER RECEIVED:", order);
+
+          localStorage.setItem(
+            "viva-order",
+            JSON.stringify(order)
+          );
+
           alert("Order placed successfully!");
           clearCart();
         }}
